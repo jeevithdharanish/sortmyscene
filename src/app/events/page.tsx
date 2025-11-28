@@ -162,7 +162,40 @@ function EventCard({
 
 export default function EventsPage() {
   const [activeTab, setActiveTab] = useState<"events" | "venues">("events");
-  const displayedItems = activeTab === "events" ? popularEvents : trendingVenues;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("");
+
+  const genres = ["House", "Techno", "Afro House", "Festival", "Electronic", "Hard Techno"];
+
+  // Filter events based on search criteria
+  const filterItems = (items: typeof popularEvents) => {
+    return items.filter((item) => {
+      const matchesSearch = searchQuery === "" || 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.venue.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCity = cityQuery === "" || 
+        item.city.toLowerCase().includes(cityQuery.toLowerCase()) ||
+        item.venue.toLowerCase().includes(cityQuery.toLowerCase());
+
+      return matchesSearch && matchesCity;
+    });
+  };
+
+  const baseItems = activeTab === "events" ? popularEvents : trendingVenues;
+  const displayedItems = filterItems(baseItems);
+
+  const handleSearch = () => {
+    // The filtering is already reactive, but this can be used for API calls
+    console.log("Searching:", { searchQuery, cityQuery, selectedGenre });
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setCityQuery("");
+    setSelectedGenre("");
+  };
 
   return (
     <main className="min-h-screen bg-black">
@@ -202,15 +235,17 @@ export default function EventsPage() {
           </div>
 
           {/* Search Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Search by Event Name or Venue */}
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search by Event Name or Venue"
-                className="w-full bg-transparent border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-full px-5 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-colors pr-12"
               />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <Search className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             </div>
 
             {/* Search City */}
@@ -218,38 +253,94 @@ export default function EventsPage() {
               <input
                 type="text"
                 placeholder="Search City"
-                className="w-full bg-transparent border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+                value={cityQuery}
+                onChange={(e) => setCityQuery(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-full px-5 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-colors pr-12"
               />
-              <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
             </div>
 
             {/* Date Range */}
             <div className="relative">
-              <div className="w-full bg-transparent border border-gray-700 rounded-lg px-4 py-3 text-gray-500 flex items-center justify-between cursor-pointer hover:border-gray-600 transition-colors">
-                <div className="flex items-center gap-4">
+              <button className="w-full bg-zinc-950 border border-zinc-700 rounded-full px-5 py-3.5 text-gray-400 flex items-center justify-between cursor-pointer hover:border-zinc-600 transition-colors">
+                <div className="flex items-center gap-3">
                   <span>Start Date</span>
                   <span className="text-gray-600">→</span>
                   <span>End Date</span>
                 </div>
                 <Calendar className="w-5 h-5 text-gray-500" />
-              </div>
+              </button>
             </div>
 
             {/* Search Genre */}
             <div className="relative">
-              <div className="w-full bg-transparent border border-gray-700 rounded-lg px-4 py-3 text-gray-500 flex items-center justify-between cursor-pointer hover:border-gray-600 transition-colors">
-                <span>Search Genre</span>
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              </div>
+              <select
+                value={selectedGenre}
+                onChange={(e) => setSelectedGenre(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-full px-5 py-3.5 text-gray-400 cursor-pointer hover:border-zinc-600 transition-colors appearance-none"
+              >
+                <option value="">Search Genre</option>
+                {genres.map((genre) => (
+                  <option key={genre} value={genre} className="bg-zinc-900 text-white">
+                    {genre}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
             </div>
           </div>
 
-          {/* Events Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {displayedItems.map((event, index) => (
-              <EventCard key={event.id} event={event} index={index} />
-            ))}
+          {/* Search Button */}
+          <div className="flex justify-center gap-4 mb-8">
+            <Button
+              onClick={handleSearch}
+              className="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-8 py-3 rounded-full"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Search Events
+            </Button>
+            {(searchQuery || cityQuery || selectedGenre) && (
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                className="border-zinc-700 text-gray-400 hover:text-white hover:border-zinc-500 px-6 py-3 rounded-full"
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
+
+          {/* Results Count */}
+          {(searchQuery || cityQuery) && (
+            <p className="text-gray-400 mb-6">
+              Found <span className="text-white font-semibold">{displayedItems.length}</span> {activeTab === "events" ? "events" : "venues"}
+              {searchQuery && <span> matching &quot;{searchQuery}&quot;</span>}
+              {cityQuery && <span> in &quot;{cityQuery}&quot;</span>}
+            </p>
+          )}
+
+          {/* No Results */}
+          {displayedItems.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg mb-4">No {activeTab === "events" ? "events" : "venues"} found matching your criteria.</p>
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                className="border-zinc-700 text-gray-400 hover:text-white hover:border-zinc-500"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          )}
+
+          {/* Events Grid */}
+          {displayedItems.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {displayedItems.map((event, index) => (
+                <EventCard key={event.id} event={event} index={index} />
+              ))}
+            </div>
+          )}
 
           {/* Load More */}
           <div className="text-center">

@@ -234,7 +234,7 @@ export function EventsSection() {
             <Button
               variant="outline"
               size="lg"
-              className="bg-white text-black hover:bg-gray-100 font-semibold px-8 py-6 rounded-full"
+              className="!bg-white !text-black hover:!bg-gray-100 font-semibold px-8 py-6 rounded-full border-white"
             >
               View All
             </Button>

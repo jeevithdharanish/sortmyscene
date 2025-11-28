@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ export function Header() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
   useEffect(() => {
@@ -68,19 +69,25 @@ export function Header() {
           <div className="flex items-center gap-8">
             <Link
               href="/"
-              className="text-purple-400 hover:text-purple-300 transition-colors font-medium"
+              className={`hover:text-purple-300 transition-colors font-medium ${
+                pathname === "/" ? "text-purple-400" : "text-white"
+              }`}
             >
               Home
             </Link>
             <Link
               href="/events"
-              className="text-white hover:text-purple-300 transition-colors font-medium"
+              className={`hover:text-purple-300 transition-colors font-medium ${
+                pathname === "/events" || pathname.startsWith("/events/") ? "text-purple-400" : "text-white"
+              }`}
             >
               Events
             </Link>
             <Link
               href="/list-event"
-              className="text-white hover:text-purple-300 transition-colors font-medium"
+              className={`hover:text-purple-300 transition-colors font-medium ${
+                pathname === "/list-event" ? "text-purple-400" : "text-white"
+              }`}
             >
               List Your Event
             </Link>
